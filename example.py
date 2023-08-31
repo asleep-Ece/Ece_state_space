@@ -159,8 +159,8 @@ elif args.dataset == 'ppg':
 
     print('========Get PPG data=========')
     # dataloader
-    trainset = ExampleDataset("train",f"{args.n_output}c")    
-    valset = ExampleDataset("test",f"{args.n_output}c")    
+    trainset = ExampleDataset("train",f"{args.n_output}c",args.to_freq)    
+    valset = ExampleDataset("test",f"{args.n_output}c",args.to_freq)    
     print(len(trainset))
     print(len(valset))
 
