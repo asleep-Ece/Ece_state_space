@@ -15,33 +15,21 @@ import torch
 import re
 import pickle
 
-def read_data(mode="train"):
-    data_dir='/nas/SNUBH-PSG_signal_extract/signal_extract'
-    label_dir='/HDD/ece/labels.csv'
-    
-    data = pd.read_csv(data_dir, header = None).values
-    label = pd.read_csv(label_dir, header= None).values
-    labels=[]
-    for ind in range(len(label)):
-        labels.append(label_string_to_int(label[ind]))
-        
-    print(labels[0])
-    data = torch.tensor(data,dtype=torch.float32)
-    
-    dataset = PPGdata(data,labels)
-
 from torch.utils.data import Dataset, DataLoader
 
  
 class ExampleDataset(Dataset):
 
-    def __init__(self, mode='train',n_class = '4c'):
-        
+    def __init__(self, mode='train',n_class = '4c' ):
+        self.chn = 'Plethysmogram'
         self.cur_dir = os.getcwd()
         self.n_class = n_class
         self.mode = mode
+
+        #processed PSG data root path
         self.PREFIX_DIR = '/HDD/snubh-psg-processed/' 
         self.LABEL_DIR = 'preprocessing/abcd_2fold_wo1314.pkl'
+
         if os.path.exists(f'ab_{self.mode}_psg.pkl') == True:
             with open(f'ab_{self.mode}_psg.pkl', "rb") as rp:
                 self.pkl_paths = pickle.load(rp)
@@ -65,11 +53,12 @@ class ExampleDataset(Dataset):
         data_dict = np.load(data_path, allow_pickle=True)
 
         label_dict = np.load(label_path, allow_pickle=True).item()
-        x = data_dict['Plethysmogram']
+        x = data_dict[self.chn]
         # print(data_path)
+
         #check if the data is None
         if len(x)==0:           
-            print(f"None value data: {data_path}/n")
+            print(f"None value data: {data_path}")
         x = torch.tensor(x,dtype=torch.float32)
         y = label_dict[self.n_class]
      
@@ -132,60 +121,18 @@ class ExampleDataset(Dataset):
         pass
 
 
-class PPGdata(data.Dataset):
-    def __init__(self, loaded_data, loaded_label):
-
-        self.data = loaded_data
-        self.label = loaded_label
-    
-    def __len__(self):
-        return len(self.data)
-    
-    def __getitem__(self, idx):
-        
-        
-        return self.data[idx],self.label[idx]
-
-
-def label_string_to_int(string):
-    """Receive string format of label and return integer value."""
-
-    if string == "SLEEP-S0":
-        return 0
-    elif string == "SLEEP-S1":
-        return 1
-    elif string == "SLEEP-S2":
-        return 1
-    elif string == "SLEEP-S3":
-        return 2
-    elif string == "SLEEP-REM":
-        return 3
-    else:
-        raise ValueError("string = {}".format(string))
-
-
 
 
 if __name__ == "__main__":
-    # dataset = ExampleDataset(mode = "val")    
-    # print(len(dataset))
-    # print(type(dataset))
+    # Test dataloader
+    dataset = ExampleDataset(mode = "test")    
+    print(len(dataset))
+    dataset = ExampleDataset(mode = "train") 
+    print(len(dataset))
+
+    #check sound data files:
     with open('abcd_2fold_wo1314.pkl', 'rb') as f:
             data = pickle.load(f)
     print(data.keys())
-    # with open(clip['4c'][0], 'rb') as fp:
-    #     data_pkl = np.load(fp, allow_pickle = True).item()
-    # print(f"label: {data_pkl['4c']}")
-    # with open(clip['test'][0],'rb') as fp:
-    #     label_pkl = np.load(fp, allow_pickle = True)
-    # print(f"data length: {len(label_pkl['Plethysmogram'])}")
-        
-        
-
-    # open the pkl data(data3 474, data1 484)
-    # with open('/nas/SNUBH-PSG_signal_extract/signal_extract/data1/train/484_data_0_0.pkl', 'rb') as f:
-    #         clip = pickle.load(f)
-    # for i in clip.items():
-
-    #     print(f"channel name : {i[0]}   |   value length: {len(i[1])}")
+   
 
