@@ -14,17 +14,17 @@ import h5py
 import torch
 import re
 import pickle
-
 from torch.utils.data import Dataset, DataLoader
 
  
 class ExampleDataset(Dataset):
 
-    def __init__(self, mode='train',n_class = '4c' ):
+    def __init__(self, mode='train',n_class = '4c',to_freq=100):
         self.chn = 'Plethysmogram'
         self.cur_dir = os.getcwd()
         self.n_class = n_class
         self.mode = mode
+        self.to_freq = to_freq
 
         #processed PSG data root path
         self.PREFIX_DIR = '/HDD/snubh-psg-processed/' 
@@ -55,6 +55,9 @@ class ExampleDataset(Dataset):
         label_dict = np.load(label_path, allow_pickle=True).item()
         x = data_dict[self.chn]
         # print(data_path)
+
+        #resample
+        x = scipy.signal.resample(x,int(len(x)/(x/to_freq)))
 
         #check if the data is None
         if len(x)==0:           
